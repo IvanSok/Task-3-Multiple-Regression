@@ -1,11 +1,11 @@
 ###############################################################################
 
-# Packages:
+# PACKAGES:
 pacman::p_load(readr, caret, corrplot, e1071, randomForest, mlbench, rstudioapi)
 
 ###############################################################################
 
-# Github setup:
+# GITHUB SETUP:
 current_path <- getActiveDocumentContext()$path
 setwd(dirname(current_path))
 rm(current_path)
@@ -13,13 +13,13 @@ rm(current_path)
 
 ###############################################################################
 
-# Datasets:
+# DATASETS:
 existing_products <- read.csv("datasets/existingproductattributes2017.csv")
 new_products <- read.csv("datasets/newproductattributes2017.csv")
 
 ###############################################################################
 
-# Dummify the data:
+# DUMMIFY THE DATA:
 
 # For existing product attributes:
 newDF <- dummyVars("~.", data = existing_products)
@@ -33,7 +33,7 @@ str(newreadyData)
 
 ###############################################################################
 
-# Analysing/deleting missing values:
+# ANALYSING/DELETING MISSING VALUES:
 
 # For existing product attributes:
 summary(readyData)
@@ -44,18 +44,18 @@ summary(newreadyData)
 
 ###############################################################################
 
-# Correlation analysis:
+# CORRELATION ANALYSIS:
 corrData <- cor(readyData)
 corrData
 
 ###############################################################################
 
-# Heat Map:
+# HEAT MAP:
 corrplot(corrData) # We can see that 2/3/4/5 star reviews and positive service reviews have a strong correlation with Volume.
 
 ###############################################################################
 
-# Removing unnecessery attributes:
+# REMOVING UNNECESSERY ATTRIBUTES:
 
 # For existing product attributes:
 readyData$ProfitMargin <- NULL
@@ -111,7 +111,7 @@ newreadyData$ProductType.Accessories <- NULL
 
 ###############################################################################
 
-# Linear Regression Model:
+# LINEAR REGRESSION MODEL:
 set.seed(123)
 
 trainSize <- round(nrow(readyData)*0.7)
@@ -136,7 +136,7 @@ postResample(lm_predictions, testSet$Volume) #performance metrics
 
 ###############################################################################
 
-# Support Vector Machine (SVM) model:
+# SUPPORT VECTOR MACHINES (SVM) MODEL:
 set.seed(123)
 
 trainSize <- round(nrow(readyData)*0.7)
@@ -160,7 +160,7 @@ postResample(svm_predictions, testSet$Volume) # performance metrics
 
 ###############################################################################
 
-# Random Forest:
+# RANDOM FOREST:
 set.seed(123)
 
 trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
@@ -176,7 +176,7 @@ postResample(svm_predictions, testSet$Volume) # performance metrics
 
 ###############################################################################
 
-# k-NN model:
+# K-NN MODEL:
 trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
 knnFit <- train(Volume ~., data = trainSet, method = "knn",
                 trControl = trctrl, preProcess = c("center", "scale"),
@@ -190,7 +190,7 @@ postResample(knn_predictions, testSet$Volume) # performance metrics
 
 ###############################################################################
 
-# Predictions for new product data set (using the best model):
+# PREDICTIONS FOR NEW PRODUCT DATASET (USING THE BEST MODEL):
 new_product_predictions_knn <- predict(knnFit, newdata = newreadyData)
 new_product_predictions_knn
 
@@ -198,14 +198,14 @@ finalPred = new_product_predictions_knn #storing predictions
 
 ###############################################################################
 
-# Adding predictions to the new products data:
+# ADDING PREDICTIONS TO THE NEW PRODUCT DATA:
 output <- newreadyData
 output$predictions <- finalPred
 output
 
 ###############################################################################
 
-#Creating a csv file that includes final predictions and storing it on hard drive:
+#CREATING A CSV FILE THAT INCUDES FINAL PREDICTIONS AND STORING IT ON THE HARD DRIVE:
 write.csv(output, file = "C2.T3output.csv", row.names = TRUE)
 
 ###############################################################################
