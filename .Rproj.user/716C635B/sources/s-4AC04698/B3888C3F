@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1555412483545.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "B3888C3F",
+    "lastKnownWriteTime" : 6,
+    "last_content_update" : 1555412483545,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "7D1F72D5",
+        "caption" : "existing_products",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=existing_products&cache_key=7D1F72D5",
+        "displayedObservations" : "80",
+        "environment" : "",
+        "object" : "existing_products",
+        "preview" : "0",
+        "totalObservations" : "80",
+        "variables" : "18"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1555422173581.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "212B1C61",
+    "lastKnownWriteTime" : 7813861304719900671,
+    "last_content_update" : 1555422173581,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "3B170B07",
+        "caption" : "new_products",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=new_products&cache_key=3B170B07",
+        "displayedObservations" : "24",
+        "environment" : "",
+        "object" : "new_products",
+        "preview" : "0",
+        "totalObservations" : "24",
+        "variables" : "18"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

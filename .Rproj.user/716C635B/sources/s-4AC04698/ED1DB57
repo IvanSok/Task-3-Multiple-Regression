@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1555410298071.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3742777057",
+    "id" : "ED1DB57",
+    "lastKnownWriteTime" : 1555493171,
+    "last_content_update" : 1555493171709,
+    "path" : "~/Desktop/UBIQUM/Task 6/Task-3-Multiple-Regression/Multiple_Regression.R",
+    "project_path" : "Multiple_Regression.R",
+    "properties" : {
+        "cursorPosition" : "228,79",
+        "scrollLine" : "206",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

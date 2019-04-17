@@ -1,7 +1,7 @@
 ###############################################################################
 
 # PACKAGES:
-pacman::p_load(readr, caret, corrplot, e1071, randomForest, mlbench, rstudioapi, dplyr)
+pacman::p_load(readr, caret, corrplot, e1071, randomForest, mlbench, rstudioapi)
 
 ###############################################################################
 
@@ -9,6 +9,7 @@ pacman::p_load(readr, caret, corrplot, e1071, randomForest, mlbench, rstudioapi,
 current_path <- getActiveDocumentContext()$path
 setwd(dirname(current_path))
 rm(current_path)
+
 
 ###############################################################################
 
@@ -110,11 +111,6 @@ newreadyData$ProductType.Accessories <- NULL
 
 ###############################################################################
 
-# Removing duplicates:
-readyData <- distinct(readyData)
-
-###############################################################################
-
 # LINEAR REGRESSION MODEL:
 set.seed(123)
 
@@ -125,6 +121,7 @@ testSize <- nrow(readyData) - trainSize
 testSize
 
 training_indices <- sample(seq_len(nrow(readyData)), size = trainSize)
+
 
 trainSet <- readyData[training_indices,]
 testSet <- readyData[-training_indices,]
@@ -155,7 +152,7 @@ training_indices <- sample(seq_len(nrow(readyData)), size = trainSize)
 trainSet <- readyData[training_indices,]
 testSet <- readyData[-training_indices,]
 
-svm_model <- svm(Volume~., data = trainSet, cost = 100, gamma = 1, preProc = c("center", "scale"))
+svm_model <- svm(Volume~., data = trainSet)
 svm_model
 
 svm_predictions <- predict(svm_model, testSet)
@@ -179,7 +176,7 @@ rf_model
 rf_predictions <- predict(rf_model,testSet)
 rf_predictions
 
-rf_metrics <- postResample(rf_predictions, testSet$Volume) # performance metrics
+rf_metrics <- postResample(svm_predictions, testSet$Volume) # performance metrics
 rf_metrics_full <- as.vector(c("RF", rf_metrics))
 rf_metrics_full
 
@@ -198,16 +195,6 @@ knn_predictions
 knn_metrics <- postResample(knn_predictions, testSet$Volume) # performance metrics
 knn_metrics_full <- as.vector(c("knn", knn_metrics))
 knn_metrics_full
-
-###############################################################################
-
-# Matrix of performance metrics for all models:
-metrics <- c("model", "RMSE", "Rsquared", "MAE")
-metrics <- rbind(metrics, lm_metrics_full)
-metrics <- rbind(metrics, svm_metrics_full)
-metrics <- rbind(metrics, rf_metrics_full)
-metrics <- rbind(metrics, knn_metrics_full)
-metrics 
 
 ###############################################################################
 
@@ -231,3 +218,12 @@ write.csv(output, file = "C2.T3output.csv", row.names = TRUE)
 
 ###############################################################################
 
+# Matrix of performance metrics for all models:
+metrics <- c("model", "RMSE", "Rsquared", "MAE")
+metrics <- rbind(metrics, lm_metrics_full)
+metrics <- rbind(metrics, svm_metrics_full)
+metrics <- rbind(metrics, rf_metrics_full)
+metrics <- rbind(metrics, knn_metrics_full)
+metrics
+
+###############################################################################
