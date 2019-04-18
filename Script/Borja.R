@@ -1,0 +1,165 @@
+###############################################################################
+
+# Packages:
+pacman::p_load(rstudioapi, readr, caret, corrplot, e1071, dplyr, car, GGally)
+
+# Load data ---------------------------
+
+# Datasets:
+current_path <- getActiveDocumentContext()$path
+setwd(dirname(dirname(current_path)))
+rm(current_path)
+
+existing_products <- read.csv("datasets/existingproductattributes2017.csv")
+new_products <- read.csv("datasets/newproductattributes2017.csv")
+
+#### Pre-processing the Data ##################################################
+
+# Dummify the data:
+newDF <- dummyVars("~.", data = existing_products)
+readyData <- data.frame(predict(newDF, newdata = existing_products))
+str(readyData) #checking if there are any nominal values
+rm(newDF) # Removing "newDF", as it won't be used from now on.
+
+# Analysing/deleting missing values
+summary(readyData)
+readyData$BestSellersRank <- NULL #deleting attribute column that has missing values
+
+# Correlation analysis:
+ggcorr(readyData)
+cor(readyData) # We can see that 2/3/4 star reviews and positive service reviews have a strong correlation with Volume.
+
+# Removing unnecessery attributes:
+readyData$x5StarReviews <- NULL # Mandatory
+readyData$Price <- NULL # Mandatory
+# readyData$x1StarReviews <- NULL
+readyData$ProfitMargin <- NULL
+readyData$ProductHeight <- NULL
+readyData$ProductWidth <- NULL
+readyData$ProductDepth <- NULL
+readyData$ShippingWeight <- NULL
+readyData$Recommendproduct <- NULL
+readyData$NegativeServiceReview <- NULL
+readyData$ProductNum <- NULL
+readyData$ProfitMargin <- NULL
+readyData$ProductType.Tablet <- NULL
+readyData$ProductType.Software <- NULL
+readyData$ProductType.Smartphone <- NULL
+readyData$ProductType.PrinterSupplies <- NULL
+readyData$ProductType.Printer <- NULL
+readyData$ProductType.PC <- NULL
+readyData$ProductType.Netbook <- NULL
+readyData$ProductType.Laptop <- NULL
+readyData$ProductType.GameConsole <- NULL
+readyData$ProductType.ExtendedWarranty <- NULL
+readyData$ProductType.Display <- NULL
+readyData$ProductType.Accessories <- NULL
+
+# Removing unnecessery attributes from New Products:
+new_products$x5StarReviews <- NULL # Mandatory
+new_products$ProductNum <- NULL # Mandatory
+# new_products$x1StarReviews <- NULL
+new_products$ProfitMargin <- NULL
+new_products$ProductHeight <- NULL
+new_products$ProductWidth <- NULL
+new_products$ProductDepth <- NULL
+new_products$ShippingWeight <- NULL
+new_products$Recommendproduct <- NULL
+new_products$NegativeServiceReview <- NULL
+new_products$Price <- NULL
+new_products$ProfitMargin <- NULL
+new_products$ProductType <- NULL
+new_products$BestSellersRank <- NULL
+
+ # Removing repeated lines and Volume outliers:
+
+readyData <- distinct(readyData)
+readyData <- readyData[readyData$Volume<4000,]
+
+# Creating Train and Test sets --------
+set.seed(123)
+
+trainSize <- round(nrow(readyData)*0.75)
+trainSize
+
+testSize <- nrow(readyData) - trainSize
+testSize
+
+training_indices <- sample(seq_len(nrow(readyData)), size = trainSize)
+
+trainSet <- readyData[training_indices,]
+testSet <- readyData[-training_indices,]
+
+# #Feature Engeneering ----
+linear_model <- lm(Volume~ 0 + x4StarReviews + x3StarReviews + x2StarReviews +
+                     x1StarReviews, trainSet)
+summary(linear_model)
+
+trainSet$WeightedReviews <- 2.203*trainSet$x4StarReviews +
+  0.296*trainSet$x3StarReviews + 0.036*trainSet$x2StarReviews + 
+  0.434*trainSet$x1StarReviews
+trainSet$x1StarReviews <- NULL
+trainSet$x2StarReviews <- NULL
+trainSet$x3StarReviews <- NULL
+trainSet$x4StarReviews <- NULL
+
+testSet$WeightedReviews <- 2.203*testSet$x4StarReviews +
+  0.296*testSet$x3StarReviews + 0.036*testSet$x2StarReviews + 
+  0.434*testSet$x1StarReviews
+testSet$x2StarReviews <- NULL
+testSet$x2StarReviews <- NULL
+testSet$x3StarReviews <- NULL
+testSet$x4StarReviews <- NULL
+
+# Modeling --------------------
+
+# Multiple models and metrics:
+
+models <- c("lm", "svmLinear", "rf", "knn")
+
+comb_metric <- c()
+
+for (i in models){
+  fit <- train(Volume~., data = trainSet, method = i)
+  pred <- predict(fit, testSet)
+  metric <- postResample(pred, testSet$Volume)
+  comb_metric <- cbind(comb_metric, metric)
+}
+
+colnames(comb_metric) <- c(models)
+# comb_metric <- as.data.frame(comb_metric)
+names(comb_metric)
+melted_data <- reshape::melt(comb_metric)
+melted_data
+
+ggplot(data = melted_data, aes(x = X2, y = value)) + geom_col() + 
+  facet_grid(X1~., scales = "free")
+ #We'll select the Random Forest, as it seems to be the one with best performance.
+
+# Creating the best model to the whole dataset ----
+
+# PREDICTIONS FOR NEW PRODUCT DATASET (USING THE BEST MODEL):
+
+
+set.seed(123)
+
+trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+rf_model <- train(Volume~., data = readyData, method = "rf",
+                  trControl = trctrl, preProcess = c("center", "scale"),
+                  tunelength = 15)
+
+ # Feature Engineering in order to apply the model:
+new_products$WeightedReviews <- 2.203*new_products$x4StarReviews +
+  0.296*new_products$x3StarReviews + 0.036*new_products$x2StarReviews + 
+  0.434*new_products$x1StarReviews
+new_products$x1StarReviews <- NULL
+new_products$x2StarReviews <- NULL
+new_products$x3StarReviews <- NULL
+new_products$x4StarReviews <- NULL
+
+ # Applying the model:
+
+new_product_predictions <- predict(rf_model, newdata = existing_products)
+new_product_predictions
+
+finalPred = new_product_predictions_knn #storing predictions
