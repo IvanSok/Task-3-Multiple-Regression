@@ -32,7 +32,6 @@ cor(readyData) # We can see that 2/3/4 star reviews and positive service reviews
 # Removing unnecessery attributes:
 readyData$x5StarReviews <- NULL # Mandatory
 readyData$Price <- NULL # Mandatory
-# readyData$x1StarReviews <- NULL
 readyData$ProfitMargin <- NULL
 readyData$ProductHeight <- NULL
 readyData$ProductWidth <- NULL
@@ -54,22 +53,6 @@ readyData$ProductType.GameConsole <- NULL
 readyData$ProductType.ExtendedWarranty <- NULL
 readyData$ProductType.Display <- NULL
 readyData$ProductType.Accessories <- NULL
-
-# Removing unnecessery attributes from New Products:
-new_products$x5StarReviews <- NULL # Mandatory
-new_products$ProductNum <- NULL # Mandatory
-# new_products$x1StarReviews <- NULL
-new_products$ProfitMargin <- NULL
-new_products$ProductHeight <- NULL
-new_products$ProductWidth <- NULL
-new_products$ProductDepth <- NULL
-new_products$ShippingWeight <- NULL
-new_products$Recommendproduct <- NULL
-new_products$NegativeServiceReview <- NULL
-new_products$Price <- NULL
-new_products$ProfitMargin <- NULL
-new_products$ProductType <- NULL
-new_products$BestSellersRank <- NULL
 
  # Removing repeated lines and Volume outliers:
 
@@ -106,7 +89,7 @@ trainSet$x4StarReviews <- NULL
 testSet$WeightedReviews <- 2.203*testSet$x4StarReviews +
   0.296*testSet$x3StarReviews + 0.036*testSet$x2StarReviews + 
   0.434*testSet$x1StarReviews
-testSet$x2StarReviews <- NULL
+testSet$x1StarReviews <- NULL
 testSet$x2StarReviews <- NULL
 testSet$x3StarReviews <- NULL
 testSet$x4StarReviews <- NULL
@@ -132,14 +115,16 @@ names(comb_metric)
 melted_data <- reshape::melt(comb_metric)
 melted_data
 
-ggplot(data = melted_data, aes(x = X2, y = value)) + geom_col() + 
-  facet_grid(X1~., scales = "free")
+colnames(melted_data) <- c("Metrics", "Models", "Value")
+
+ggplot(data = melted_data, aes(x = Models, y = Value)) + 
+  geom_col(color="Blue", fill="lightblue") + 
+  facet_grid(Metrics~., scales = "free")
  #We'll select the Random Forest, as it seems to be the one with best performance.
 
 # Creating the best model to the whole dataset ----
 
 # PREDICTIONS FOR NEW PRODUCT DATASET (USING THE BEST MODEL):
-
 
 set.seed(123)
 
@@ -152,14 +137,34 @@ rf_model <- train(Volume~., data = readyData, method = "rf",
 new_products$WeightedReviews <- 2.203*new_products$x4StarReviews +
   0.296*new_products$x3StarReviews + 0.036*new_products$x2StarReviews + 
   0.434*new_products$x1StarReviews
-new_products$x1StarReviews <- NULL
-new_products$x2StarReviews <- NULL
-new_products$x3StarReviews <- NULL
-new_products$x4StarReviews <- NULL
 
  # Applying the model:
 
-new_product_predictions <- predict(rf_model, newdata = existing_products)
+new_product_predictions <- predict(rf_model, newdata = new_products)
 new_product_predictions
 
-finalPred = new_product_predictions_knn #storing predictions
+new_products$Volume <- new_product_predictions #storing predictions
+new_products$Profitability <- (new_products$ProfitMargin*new_products$Price)*
+  new_products$Volume
+
+# Removing unnecessery attributes from New Products:
+new_products$x5StarReviews <- NULL
+new_products$x4StarReviews <- NULL
+new_products$x3StarReviews <- NULL
+new_products$x2StarReviews <- NULL
+new_products$x1StarReviews <- NULL
+new_products$x1StarReviews <- NULL
+new_products$ProductHeight <- NULL
+new_products$ProductWidth <- NULL
+new_products$ProductDepth <- NULL
+new_products$ShippingWeight <- NULL
+new_products$Recommendproduct <- NULL
+new_products$NegativeServiceReview <- NULL
+new_products$ProfitMargin <- NULL
+new_products$BestSellersRank <- NULL
+
+new_products <- new_products[order(-new_products$Profitability) , ]
+top5 <- head(new_products, 5)
+
+#CREATING A CSV FILE THAT INCUDES FINAL PREDICTIONS AND STORING IT ON THE HARD DRIVE:
+write.csv(top5, file = "C2.T3output.csv", row.names = TRUE)
