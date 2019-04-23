@@ -26,9 +26,10 @@ rm(newDF) # Removing "newDF", as it won't be used from now on.
 summary(readyData)
 readyData$BestSellersRank <- NULL #deleting attribute column that has missing values
 
-# Correlation analysis:
+# Correlation analysis and heatmaps:
 ggcorr(readyData)
-cor(readyData) # We can see that 2/3/4 star reviews and positive service reviews have a strong correlation with Volume.
+corrData <- cor(readyData) # We can see that 2/3/4 star reviews and positive service reviews have a strong correlation with Volume.
+corrplot(corrData)
 
 # Removing unnecessery attributes:
 readyData$x5StarReviews <- NULL # Mandatory
@@ -187,7 +188,7 @@ output2 <- readyNewData %>% group_by(ProductType) %>%
 
 output <- merge(output1, output2, sort = TRUE)
 
-# readyNewData <- readyNewData[order(-readyNewData$P) , ] # Optional
+output <- output[order(-output$sum_Profitability) , ] # Optional
 # top5 <- head(readyNewData, 5) # Optional
 
 #CREATING A CSV FILE THAT INCUDES FINAL PREDICTIONS AND STORING IT ON THE HARD DRIVE:
