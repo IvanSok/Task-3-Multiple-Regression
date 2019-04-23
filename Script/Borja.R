@@ -1,8 +1,7 @@
 ###############################################################################
 
 # Packages:
-pacman::p_load(rstudioapi, readr, caret, corrplot, e1071, dplyr, car, GGally,
-               Quandl, xts)
+pacman::p_load(rstudioapi, readr, caret, corrplot, e1071, dplyr, car, GGally)
 
 # Load data ---------------------------
 
