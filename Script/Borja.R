@@ -1,7 +1,8 @@
 ###############################################################################
 
 # Packages:
-pacman::p_load(rstudioapi, readr, caret, corrplot, e1071, dplyr, car, GGally)
+pacman::p_load(rstudioapi, readr, caret, corrplot, e1071, dplyr, car, GGally,
+               Quandl, xts)
 
 # Load data ---------------------------
 
@@ -124,6 +125,16 @@ ggplot(data = melted_data, aes(x = Models, y = Value)) +
 
 # Creating the best model to the whole dataset ----
 
+# Feature Engineering in order to apply the model:
+
+readyData$WeightedReviews <- 2.203*readyData$x4StarReviews +
+  0.296*readyData$x3StarReviews + 0.036*readyData$x2StarReviews + 
+  0.434*readyData$x1StarReviews
+readyData$x1StarReviews <- NULL
+readyData$x2StarReviews <- NULL
+readyData$x3StarReviews <- NULL
+readyData$x4StarReviews <- NULL
+
 # PREDICTIONS FOR NEW PRODUCT DATASET (USING THE BEST MODEL):
 
 set.seed(123)
@@ -133,38 +144,52 @@ rf_model <- train(Volume~., data = readyData, method = "rf",
                   trControl = trctrl, preProcess = c("center", "scale"),
                   tunelength = 15)
 
+readyNewData <- new_products
+
  # Feature Engineering in order to apply the model:
-new_products$WeightedReviews <- 2.203*new_products$x4StarReviews +
-  0.296*new_products$x3StarReviews + 0.036*new_products$x2StarReviews + 
-  0.434*new_products$x1StarReviews
+readyNewData$WeightedReviews <- 2.203*readyNewData$x4StarReviews +
+  0.296*readyNewData$x3StarReviews + 0.036*readyNewData$x2StarReviews + 
+  0.434*readyNewData$x1StarReviews
 
  # Applying the model:
 
-new_product_predictions <- predict(rf_model, newdata = new_products)
+new_product_predictions <- predict(rf_model, newdata = readyNewData)
 new_product_predictions
 
-new_products$Volume <- new_product_predictions #storing predictions
-new_products$Profitability <- (new_products$ProfitMargin*new_products$Price)*
-  new_products$Volume
+readyNewData$VolumePredictions <- round(new_product_predictions, digits = 0) #storing predictions
+readyNewData$Profitability <- round((readyNewData$ProfitMargin*
+                                       readyNewData$Price)*
+                                      readyNewData$VolumePredictions, 
+                                    digits = 2)
 
 # Removing unnecessery attributes from New Products:
-new_products$x5StarReviews <- NULL
-new_products$x4StarReviews <- NULL
-new_products$x3StarReviews <- NULL
-new_products$x2StarReviews <- NULL
-new_products$x1StarReviews <- NULL
-new_products$x1StarReviews <- NULL
-new_products$ProductHeight <- NULL
-new_products$ProductWidth <- NULL
-new_products$ProductDepth <- NULL
-new_products$ShippingWeight <- NULL
-new_products$Recommendproduct <- NULL
-new_products$NegativeServiceReview <- NULL
-new_products$ProfitMargin <- NULL
-new_products$BestSellersRank <- NULL
+readyNewData$x5StarReviews <- NULL
+readyNewData$x4StarReviews <- NULL
+readyNewData$x3StarReviews <- NULL
+readyNewData$x2StarReviews <- NULL
+readyNewData$x1StarReviews <- NULL
+readyNewData$x1StarReviews <- NULL
+readyNewData$ProductHeight <- NULL
+readyNewData$ProductWidth <- NULL
+readyNewData$ProductDepth <- NULL
+readyNewData$ShippingWeight <- NULL
+readyNewData$Recommendproduct <- NULL
+readyNewData$NegativeServiceReview <- NULL
+readyNewData$ProfitMargin <- NULL
+readyNewData$BestSellersRank <- NULL
+readyNewData$Volume <- NULL
 
-new_products <- new_products[order(-new_products$Profitability) , ]
-top5 <- head(new_products, 5)
+output1 <- readyNewData %>% group_by(ProductType) %>% 
+  summarise(sum_volume = sum(VolumePredictions))
+
+output2 <- readyNewData %>% group_by(ProductType) %>% 
+  summarise(sum_Profitability = sum(Profitability))
+
+output <- merge(output1, output2, sort = TRUE)
+
+# readyNewData <- readyNewData[order(-readyNewData$P) , ] # Optional
+# top5 <- head(readyNewData, 5) # Optional
 
 #CREATING A CSV FILE THAT INCUDES FINAL PREDICTIONS AND STORING IT ON THE HARD DRIVE:
-write.csv(top5, file = "C2.T3output.csv", row.names = TRUE)
+write.csv(output, file = "C2.T3output.csv", row.names = TRUE)
+# write.csv(top5, file = "C2.T3Top5.csv", row.names = TRUE)
