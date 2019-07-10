@@ -26,8 +26,9 @@ Product Profitability - Technical Approach
 
 4. Modelling
 - Linear Model
-- Gradient Boosting Trees
+- SVM
 - Random Forest
+- KNN
 
 5. Prediction and Error Analysis
 
